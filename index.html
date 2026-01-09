@@ -163,137 +163,34 @@
 
     .score-progress {
       stroke: url(#gradStroke);
-      stroke-dasharray: 314;
-      stroke-dashoffset: 314;
-      transition: stroke-dashoffset 1s ease;
-    }
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Second Life</title>
+              <link rel="preconnect" href="https://fonts.googleapis.com">
+              <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+              <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+              <link rel="stylesheet" href="style.css">
+              <script src="app.js" defer></script>
+      </head>
+      <body>
+              <header>
+                      <h1>Second Life ♻️</h1>
+                      <p>Give your items a second life!</p>
+              </header>
 
-    .score-text {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: #111827;
-    }
+              <main>
+                      <div class="input-section">
+                              <input type="text" id="item-input" placeholder="e.g. plastic bottle">
+                              <button id="submit-item">Give it a Second Life</button>
+                      </div>
 
-    /* ---------- IDEAS ---------- */
-    ul { padding-left: 18px; }
-    li { margin-bottom: 8px; }
+                      <div id="results-container">
+                              <!-- AI reuse cards will appear here -->
+                      </div>
+              </main>
+      </body>
+      </html>
 
-    .impact { margin-top: 14px; font-weight: 600; color: #065f46 }
-
-    /* ---------- DESKTOP ---------- */
-    @media (min-width: 900px) {
-      .app { max-width: 1100px; padding: 48px; }
-      .input-area { flex-direction: row; }
-      button { width: 220px; }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="page">
-    <div class="app">
-
-      <div class="brand">
-        <div class="logo">♻️</div>
-        <h1>Second Life</h1>
-      </div>
-
-      <p class="subtitle">
-        Give everyday objects a smarter, sustainable second life — powered by AI.
-      </p>
-
-      <div class="input-area">
-        <input id="itemInput" placeholder="e.g. plastic bottle"/>
-        <button onclick="analyzeItem()">Scan & Transform</button>
-      </div>
-
-      <div id="loading" class="loading">🤖 AI is analyzing sustainability impact...</div>
-
-      <div id="result" class="result-card">
-
-        <div class="score-wrap">
-            <div class="score-ring">
-            <svg width="120" height="120">
-              <defs>
-                <linearGradient id="gradStroke" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#16a34a" />
-                  <stop offset="100%" stop-color="#4ade80" />
-                </linearGradient>
-              </defs>
-              <circle class="score-bg" cx="60" cy="60" r="50"/>
-              <circle id="scoreCircle" class="score-progress" cx="60" cy="60" r="50"/>
-            </svg>
-            <div id="scoreText" class="score-text">0</div>
-          </div>
-
-          <div>
-            <strong>Eco Potential Score</strong>
-            <p style="margin:4px 0;color:#4caf50;">Higher score = better reuse impact</p>
-          </div>
-        </div>
-
-        <ul id="ideas"></ul>
-
-        <div id="impact" class="impact"></div>
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-    async function analyzeItem() {
-      const item = document.getElementById("itemInput").value.trim();
-      if (!item) return;
-
-      document.getElementById("loading").style.display = "block";
-      document.getElementById("result").style.display = "none";
-
-      try {
-        const res = await fetch("/api/reuse", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ item })
-        });
-
-        const data = await res.json();
-
-        // Score ring
-        const percent = Math.max(0, Math.min(100, Number(data.reuseScore) || 0));
-        const offset = 314 - (314 * percent) / 100;
-        document.getElementById("scoreCircle").style.strokeDashoffset = offset;
-        document.getElementById("scoreText").innerText = percent;
-
-        // Ideas
-        const list = document.getElementById("ideas");
-        list.innerHTML = "";
-        (data.ideas || []).forEach(i => {
-          const li = document.createElement("li");
-          li.innerText = i;
-          list.appendChild(li);
-        });
-
-        // Robust impact handling (model may return different field names)
-        const impact = data.impact || {};
-        const waste = impact.waste ?? impact.WASTE ?? impact.Waste ?? impact.wasteKg ?? (data.perItem && data.perItem.wasteKg) ?? 'N/A';
-        const co2 = impact.co2 ?? impact.CO2 ?? 'N/A';
-        const water = impact.water ?? impact.Water ?? 'N/A';
-
-        document.getElementById("impact").innerText =
-          `🌱 Waste saved: ${waste}kg · CO₂: ${co2}kg · Water: ${water}L`;
-
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("result").style.display = "block";
-
-      } catch (err) {
-        document.getElementById("loading").innerText =
-          "Something went wrong. Please try again.";
-      }
-    }
-  </script>
-</body>
-</html>
