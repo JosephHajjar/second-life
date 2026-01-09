@@ -21,16 +21,31 @@ function detectProfile(item) {
     { keys: ['plastic bag', 'bag'], weight: 0.01, material: 'plastic', reuseBase: 45, co2PerKg: 2.5, waterPerKg: 20, reach: 400000 },
     { keys: ['cup', 'paper cup', 'coffee cup'], weight: 0.02, material: 'paper', reuseBase: 25, co2PerKg: 1.0, waterPerKg: 20, reach: 300000 }
   ];
-
-  for (let p of profiles) {
-    for (let k of p.keys) {
-      if (text.indexOf(k) !== -1) return p;
+  
+    // More specific material profiles with recyclability, durability and mass heuristics
+    const profiles = [
+      { keys: ['plastic bottle', 'bottle', 'pet bottle'], material: 'plastic:PET', massKg: 0.02, reuseBase: 72, recyclability: 0.8, durability: 5, co2PerKg: 2.5, waterPerKg: 50, reach: 500000 },
+      { keys: ['hdpe', 'milk jug', 'detergent bottle'], material: 'plastic:HDPE', massKg: 0.03, reuseBase: 70, recyclability: 0.85, durability: 6, co2PerKg: 2.2, waterPerKg: 40, reach: 300000 },
+      { keys: ['plastic bag', 'bag', 'polybag'], material: 'plastic:LDPE', massKg: 0.005, reuseBase: 45, recyclability: 0.4, durability: 2, co2PerKg: 2.5, waterPerKg: 20, reach: 400000 },
+      { keys: ['glass bottle', 'glass jar'], material: 'glass', massKg: 0.25, reuseBase: 78, recyclability: 0.95, durability: 8, co2PerKg: 0.9, waterPerKg: 10, reach: 100000 },
+      { keys: ['aluminum can', 'can'], material: 'aluminum', massKg: 0.015, reuseBase: 80, recyclability: 0.98, durability: 7, co2PerKg: 9.0, waterPerKg: 5, reach: 600000 },
+      { keys: ['steel', 'tin'], material: 'steel', massKg: 0.2, reuseBase: 75, recyclability: 0.95, durability: 9, co2PerKg: 2.0, waterPerKg: 20, reach: 200000 },
+      { keys: ['cardboard', 'box'], material: 'paper', massKg: 0.3, reuseBase: 70, recyclability: 0.9, durability: 4, co2PerKg: 1.0, waterPerKg: 20, reach: 200000 },
+      { keys: ['t-shirt', 'shirt', 'clothing', 'fabric'], material: 'textile', massKg: 0.2, reuseBase: 82, recyclability: 0.6, durability: 6, co2PerKg: 2.0, waterPerKg: 2700, reach: 120000 },
+      { keys: ['phone', 'smartphone', 'electronics', 'laptop', 'tablet'], material: 'electronic', massKg: 0.18, reuseBase: 50, recyclability: 0.2, durability: 5, co2PerKg: 70, waterPerKg: 1000, reach: 50000 },
+      { keys: ['wood', 'cutting board', 'furniture'], material: 'wood', massKg: 2.0, reuseBase: 88, recyclability: 0.9, durability: 9, co2PerKg: 0.4, waterPerKg: 500, reach: 40000 },
+      { keys: ['ceramic', 'mug', 'plate'], material: 'ceramic', massKg: 0.5, reuseBase: 66, recyclability: 0.1, durability: 8, co2PerKg: 1.5, waterPerKg: 100, reach: 30000 }
+    ];
+  
+    for (let p of profiles) {
+      for (let k of p.keys) {
+        if (text.indexOf(k) !== -1) return p;
+      }
     }
-  }
-
-  // Generic fallback profile
-  return { keys: [], weight: Math.max(0.03, Math.min(1, (text.length || 5) * 0.02)), material: 'generic', reuseBase: 50, co2PerKg: 2.5, waterPerKg: 50, reach: 100000 };
-}
+  
+    // Generic fallback profile uses simple heuristics
+    const fallbackMass = Math.max(0.01, Math.min(5, (text.length || 10) * 0.02));
+    return { keys: [], material: 'generic', massKg: fallbackMass, reuseBase: 55, recyclability: 0.6, durability: 5, co2PerKg: 2.5, waterPerKg: 50, reach: 100000 };
 
 function makeFallback(item) {
   const profile = detectProfile(item);
@@ -67,6 +82,39 @@ function makeFallback(item) {
     perItem: { wasteKg: waste },
     slider: { maxRecycled: Math.max(100, Math.floor(profile.reach || 10000)) }
   };
+}
+
+// Helper to call the model with a focused scoring prompt when needed
+async function askModelForScore(item, partialJson, apiKey) {
+  try {
+    const modelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generate?key=' + encodeURIComponent(apiKey);
+    const prompt = `You are an assistant that computes a single numeric reuse score (0-100) for an item based on facts about the item.\nItem: ${item}\nContext JSON: ${JSON.stringify(partialJson)}\nRespond with ONLY valid JSON: {"reuseScore": <number>} where number is between 0 and 100. No extra text.`;
+    const body = { prompt: prompt, temperature: 0.0 };
+    const rr = await fetch(modelUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    let dd = null;
+    try { dd = await rr.json(); } catch (e) { dd = null; }
+    if (!rr.ok || !dd) return null;
+
+    // extract text similar to other model parsing
+    let text = '';
+    if (dd.candidates && dd.candidates[0] && dd.candidates[0].content) {
+      const parts = dd.candidates[0].content.parts || [];
+      text = parts.map(p => p.text || '').join('');
+    } else if (typeof dd.output === 'string') {
+      text = dd.output;
+    } else {
+      try { text = JSON.stringify(dd); } catch (e) { text = '' + dd; }
+    }
+
+    const parsed = safeJsonParse(text);
+    if (parsed && typeof parsed.reuseScore !== 'undefined') {
+      const n = Number(parsed.reuseScore);
+      if (Number.isFinite(n)) return Math.max(0, Math.min(100, Math.round(n)));
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
 }
 
 module.exports = async function (req, res) {
@@ -133,6 +181,25 @@ module.exports = async function (req, res) {
           }
           if (out.perItem) out.perItem.wasteKg = Math.max(0, Number(out.perItem.wasteKg) || 0);
           if (out.slider && Number.isFinite(Number(out.slider.maxRecycled))) out.slider.maxRecycled = Math.max(1, Math.floor(Number(out.slider.maxRecycled)));
+
+          // Prefer AI-generated score: if missing or invalid, ask the model specifically for a reuseScore
+          if (!Number.isFinite(Number(out.reuseScore))) {
+            try {
+              const aiScore = await askModelForScore(item, out, apiKey);
+              if (aiScore !== null) out.reuseScore = aiScore;
+              else {
+                // fallback to profile base if AI score not available
+                const profile = detectProfile(item);
+                out.reuseScore = Math.round(Math.max(0, Math.min(100, Number(profile.reuseBase || 50))));
+              }
+            } catch (e) {
+              const profile = detectProfile(item);
+              out.reuseScore = Math.round(Math.max(0, Math.min(100, Number(profile.reuseBase || 50))));
+            }
+          } else {
+            out.reuseScore = Math.round(Number(out.reuseScore));
+          }
+
           return res.status(200).json(out);
         }
       }
