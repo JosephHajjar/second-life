@@ -33,7 +33,7 @@ module.exports = async function (req, res) {
 
     var prompt = '\nYou are an AI assistant that gives creative reuse ideas for items.\n\nInput: ' +
       item +
-      "\n\nReturn ONLY valid JSON with this exact shape:\n{\n  \"reuseScore\": number (0-100),\n  \"ideas\": string[] (exactly 3),\n  \"impact\": { \"CO2\": number, \"water\": number, \"waste\": number }\n}\nNo markdown, no extra text.\n";
+      "\n\nReturn ONLY valid JSON with this exact shape (use numbers >= 0, no negative values):\n{\n  \"reuseScore\": number (0-100),\n  \"ideas\": string[] (exactly 3),\n  \"impact\": { \"CO2\": number (kg), \"water\": number (liters), \"waste\": number (kg) },\n  \"perItem\": { \"wasteKg\": number (kg per item, >=0) },\n  \"slider\": { \"maxRecycled\": integer (realistic total number of people/items that could be recycled, >=1) }\n}\nNo markdown, no extra text. If you cannot estimate a numeric field, set it to null. Keep output strictly JSON.\n";
 
     // Try listing models to find supported names (try v1 then v1beta)
     var listEndpoints = [
@@ -145,7 +145,20 @@ module.exports = async function (req, res) {
 
     var parsed = safeJsonParse(text);
     if (parsed && typeof parsed === 'object') {
-      return res.status(200).json(parsed);
+      // Sanitize numeric fields to ensure no negative values and sensible types
+      var out = Object.assign({}, parsed);
+      if (out.impact) {
+        out.impact.CO2 = Math.max(0, Number(out.impact.CO2) || 0);
+        out.impact.water = Math.max(0, Number(out.impact.water) || 0);
+        out.impact.waste = Math.max(0, Number(out.impact.waste) || 0);
+      }
+      if (out.perItem) {
+        out.perItem.wasteKg = Math.max(0, Number(out.perItem.wasteKg) || 0);
+      }
+      if (out.slider && Number.isFinite(Number(out.slider.maxRecycled))) {
+        out.slider.maxRecycled = Math.max(1, Math.floor(Number(out.slider.maxRecycled)));
+      }
+      return res.status(200).json(out);
     }
 
     return res.status(500).json({ error: 'Model returned non-JSON response', usedEndpoint: usedEndpoint || null, text: text, raw: data });

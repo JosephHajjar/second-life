@@ -2,11 +2,19 @@ function renderReuseCard(item, data) {
     const resultsContainer = document.getElementById('results-container');
     const reuseScore = typeof data?.reuseScore === 'number' ? data.reuseScore : 'N/A';
     const ideas = Array.isArray(data?.ideas) ? data.ideas : [];
-        // Compute a simple per-item baseline if model did not provide impact.
-        // We'll estimate per-item waste (kg) if not provided.
-        const perItemWasteKg = (data?.impact?.waste && typeof data.impact.waste === 'number') ? data.impact.waste : 0.3;
+        // Compute per-item baseline using model fields if present; ensure non-negative
+        let perItemWasteKg = 0.3;
+        if (typeof data?.perItem?.wasteKg === 'number') perItemWasteKg = data.perItem.wasteKg;
+        else if (typeof data?.impact?.waste === 'number') perItemWasteKg = data.impact.waste;
+        perItemWasteKg = Math.max(0, Number(perItemWasteKg) || 0);
 
-        // Render card with slider to simulate number of people who recycled this item (1..1,000,000)
+        // Determine a realistic slider maximum specific to this item when provided by the model
+        let sliderMax = 1000000;
+        if (data?.slider && Number.isFinite(Number(data.slider.maxRecycled)) && Number(data.slider.maxRecycled) > 0) {
+            sliderMax = Math.max(1, Math.floor(Number(data.slider.maxRecycled)));
+        }
+
+        // Render card with slider to simulate number of people who recycled this item
         resultsContainer.innerHTML = `
                 <div class="card">
                         <h2>Reuse ideas for "${item}"</h2>
@@ -16,8 +24,8 @@ function renderReuseCard(item, data) {
                         </ol>
 
                         <div class="slider-row">
-                            <label class="muted-small">People who recycled this item: <span id="people-count">1</span></label>
-                            <input id="people-slider" type="range" min="1" max="1000000" value="1" step="1">
+                            <label class="muted-small">People who recycled this item: <span id="people-count">0</span></label>
+                            <input id="people-slider" type="range" min="0" max="${sliderMax}" value="0" step="1">
                         </div>
 
                         <div class="impact-row">
@@ -27,7 +35,7 @@ function renderReuseCard(item, data) {
                             </div>
                             <div>
                                 <div class="muted-small">Estimated items reused</div>
-                                <div class="impact-value"><span id="items-count">1</span></div>
+                                <div class="impact-value"><span id="items-count">0</span></div>
                             </div>
                         </div>
                 </div>
@@ -40,14 +48,17 @@ function renderReuseCard(item, data) {
         const itemsCountEl = document.getElementById('items-count');
 
         function updateImpact() {
-            const people = Number(slider.value || 1);
+            let people = Number(slider.value || 0);
+            // Clamp to valid range
+            people = Math.max(0, Math.min(people, Number(slider.max) || sliderMax));
             peopleCountEl.textContent = Intl.NumberFormat().format(people);
             const items = people; // assume one item per person for simulation
             itemsCountEl.textContent = Intl.NumberFormat().format(items);
 
             // Compute waste prevented = per-item waste * items
-            const wasteKg = perItemWasteKg * items;
-            // Show in kg, but scale to tons if large
+            let wasteKg = perItemWasteKg * items;
+            wasteKg = Math.max(0, wasteKg);
+            // Show in kg, but scale to tonnes if large
             if (wasteKg >= 1000) {
                 wasteKgEl.textContent = (wasteKg / 1000).toFixed(2) + ' t';
             } else {

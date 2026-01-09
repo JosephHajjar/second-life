@@ -13,7 +13,7 @@
 
 body{
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-    background: var(--bg);
+    background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
     color: var(--text);
     margin:0;
     padding:0;
@@ -26,14 +26,26 @@ header{
     padding:3.5rem 1rem 2rem;
 }
 
-header h1{
-    margin:0;
-    font-size:2.6rem;
-    font-weight:800;
-    letter-spacing: -0.02em;
-}
+/* Provided UI styles */
+.page { min-height: 100vh; display:flex; justify-content:center; }
+.app { width: 100%; padding: 20px; }
+.app h1 { font-size: 3rem; margin-bottom: 10px; color: #1b5e20; font-weight:800; }
+.subtitle { font-size: 1.05rem; color: #4a6f4d; margin-bottom: 28px; max-width: 800px; }
 
-header p{margin:0.6rem 0 0;color:var(--muted);font-size:1.05rem}
+/* Input area */
+.input-area { display:flex; flex-direction:column; gap:12px; margin-bottom:24px; }
+.input-area input { padding:16px; font-size:16px; border-radius:12px; border:1px solid #ccc; outline:none; }
+.input-area input:focus { border-color:#2e7d32; }
+.input-area button { padding:16px; font-size:16px; border-radius:12px; border:none; background:#2e7d32; color:white; cursor:pointer }
+.input-area button:hover { background:#1b5e20 }
+
+.result-card { display:block; margin-top:24px; padding:20px; border-radius:16px; background:white; box-shadow:0 10px 25px rgba(0,0,0,0.08); }
+.result-card h2 { margin-top:0; color:#2e7d32; }
+.result-card ul { padding-left:18px }
+.impact { margin-top:14px; font-weight:500; color:#33691e }
+.loading { margin-top:16px; font-style:italic; color:#4a6f4d }
+
+@media (min-width:900px) { .app { max-width:1100px; margin:auto; padding:48px; background:white; border-radius:20px; box-shadow:0 20px 40px rgba(0,0,0,0.1); } .input-area { flex-direction:row } .input-area button { width:220px } }
 
 main{
     max-width:var(--max-width);
