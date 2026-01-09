@@ -12,13 +12,13 @@ function safeJsonParse(text) {
 function detectProfile(item) {
   const text = (item || '').toLowerCase();
   const profiles = [
-    { keys: ['plastic bottle', 'bottle'], weight: 0.03, material: 'plastic', reuseBase: 55, co2PerKg: 2.5, waterPerKg: 50, reach: 500000 },
+    { keys: ['plastic bottle', 'bottle'], weight: 0.03, material: 'plastic', reuseBase: 72, co2PerKg: 2.5, waterPerKg: 50, reach: 500000 },
     { keys: ['glass bottle', 'glass jar'], weight: 0.4, material: 'glass', reuseBase: 70, co2PerKg: 0.9, waterPerKg: 10, reach: 100000 },
     { keys: ['aluminum can', 'can'], weight: 0.015, material: 'aluminum', reuseBase: 75, co2PerKg: 9.0, waterPerKg: 5, reach: 600000 },
     { keys: ['cardboard', 'box'], weight: 0.2, material: 'paper', reuseBase: 80, co2PerKg: 1.0, waterPerKg: 20, reach: 200000 },
     { keys: ['t-shirt', 'shirt', 'clothing', 'fabric'], weight: 0.25, material: 'textile', reuseBase: 80, co2PerKg: 2.0, waterPerKg: 2700, reach: 120000 },
     { keys: ['phone', 'smartphone', 'electronics', 'laptop', 'tablet'], weight: 0.2, material: 'electronic', reuseBase: 45, co2PerKg: 70, waterPerKg: 1000, reach: 50000 },
-    { keys: ['plastic bag', 'bag'], weight: 0.01, material: 'plastic', reuseBase: 30, co2PerKg: 2.5, waterPerKg: 20, reach: 400000 },
+    { keys: ['plastic bag', 'bag'], weight: 0.01, material: 'plastic', reuseBase: 45, co2PerKg: 2.5, waterPerKg: 20, reach: 400000 },
     { keys: ['cup', 'paper cup', 'coffee cup'], weight: 0.02, material: 'paper', reuseBase: 25, co2PerKg: 1.0, waterPerKg: 20, reach: 300000 }
   ];
 
@@ -39,7 +39,11 @@ function makeFallback(item) {
   // Compute reuse score using profile base, small boosts/penalties from keywords
   let score = profile.reuseBase || 50;
   const t = (item || '').toLowerCase();
-  if (t.includes('single-use') || t.includes('disposable') || t.includes('throwaway')) score -= 20;
+  let penalty = 0;
+  if (t.includes('single-use') || t.includes('disposable') || t.includes('throwaway')) penalty += 20;
+  // Reduce the single-use penalty for plastic items because many plastics are recyclable
+  if (profile.material === 'plastic' && penalty > 0) penalty = Math.floor(penalty * 0.5);
+  score -= penalty;
   if (t.includes('vintage') || t.includes('antique') || t.includes('handmade')) score += 12;
   // longer descriptive names often imply more durable items
   if ((item || '').length > 20) score += 6;
