@@ -11,27 +11,20 @@
         <script src="app.js" defer></script>
 </head>
 <body>
-    <div class="page">
-        <div class="app">
-            <h1>Second Life</h1>
-            <p class="subtitle">
-                Turn everyday waste into meaningful reuse ideas using AI — helping reduce landfill
-                waste and build sustainable habits.
-            </p>
+        <header>
+                <h1>Second Life ♻️</h1>
+                <p>Give your items a second life!</p>
+        </header>
 
-            <div class="input-area">
-                <input id="item-input" placeholder="e.g. plastic bottle" />
-                <button id="submit-item">Analyze Item</button>
-            </div>
+        <main>
+                <div class="input-section">
+                        <input type="text" id="item-input" placeholder="e.g. plastic bottle">
+                        <button id="submit-item">Give it a Second Life</button>
+                </div>
 
-            <div id="loading" class="loading" style="display:none;">
-                🤖 AI is thinking...
-            </div>
-
-            <div id="results-container" class="result-card">
-                <!-- app.js will render result card(s) here -->
-            </div>
-        </div>
-    </div>
+                <div id="results-container">
+                        <!-- AI reuse cards will appear here -->
+                </div>
+        </main>
 </body>
 </html>
