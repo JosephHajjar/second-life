@@ -78,7 +78,7 @@ function detectProfile(item) {
 async function askModelForScore(item, partialJson, apiKey) {
   try {
     const modelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generate?key=' + encodeURIComponent(apiKey);
-    const prompt = `You are an assistant that computes a single numeric reuse score (0-100) for an item based on facts about the item.\nItem: ${item}\nContext JSON: ${JSON.stringify(partialJson)}\nRespond with ONLY valid JSON: {"reuseScore": <number>} where number is between 0 and 100. No extra text.`;
+    const prompt = `You are an expert sustainability assistant. Compute a single numeric reuseScore (0-100) for the given item, using the provided Context JSON if present. Be particular about the materials array if present — weight each material's suggestedReuseScore by its confidence to form the overall reuseScore.\nItem: ${item}\nContext JSON: ${JSON.stringify(partialJson)}\nRespond with ONLY valid JSON: {"reuseScore": <number>} (integer between 0 and 100). No extra text.`;
     const body = { prompt: prompt, temperature: 0.0 };
     const rr = await fetch(modelUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     let dd = null;
