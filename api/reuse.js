@@ -134,8 +134,8 @@ module.exports = async function (req, res) {
     // If anything fails or the model returns non-JSON, fall back to a safe canned response.
     try {
       const modelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generate?key=' + encodeURIComponent(apiKey);
-      const prompt = `You are an assistant that returns JSON for reuse suggestions. Input: ${item}`;
-      const body = { prompt: prompt, temperature: 0.3 };
+      const prompt = `You are an expert sustainability assistant. Given the single-line item description after 'Item:', analyze the item's likely materials, estimate per-material recyclability and durability, and then compute a single overall reuseScore (0-100) that reflects the realistic potential for reuse (higher = better). Return ONLY valid JSON with this exact shape (no extra text):\n\n{\n  \"reuseScore\": number (0-100),\n  \"materials\": [ { \"material\": string, \"confidence\": number (0-100), \"recyclability\": number (0-1), \"suggestedReuseScore\": number (0-100) } ],\n  \"ideas\": string[] (3 items),\n  \"impact\": { \"CO2\": number (kg), \"water\": number (liters), \"waste\": number (kg) },\n  \"perItem\": { \"wasteKg\": number },\n  \"slider\": { \"maxRecycled\": integer }\n}\n\nBe specific about materials (e.g., \"plastic:PET\", \"aluminum\", \"glass\"). Use numbers that are realistic for everyday consumer items. If you are unsure of a numeric estimate, set it to null. Use only JSON.`;
+      const body = { prompt: prompt, temperature: 0.2 };
 
       const rr = await fetch(modelUrl, {
         method: 'POST',
