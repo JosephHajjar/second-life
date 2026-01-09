@@ -1,51 +1,106 @@
-body {
-    font-family: Arial, sans-serif;
-    background: #121212;
-    color: #ffffff;
-    margin: 0;
-    padding: 0;
+:root{
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --muted: #6b7280;
+    --text: #0f1724;
+    --accent: #0ea5a4;
+    --accent-600: #089089;
+    --radius: 12px;
+    --max-width: 760px;
 }
 
-header {
-    text-align: center;
-    padding: 2rem;
-    background: #1f1f1f;
+*{box-sizing:border-box}
+
+body{
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    background: var(--bg);
+    color: var(--text);
+    margin:0;
+    padding:0;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
 }
 
-input {
-    padding: 0.5rem;
-    font-size: 1rem;
-    width: 70%;
-    margin-right: 0.5rem;
-    border-radius: 5px;
-    border: none;
+header{
+    text-align:center;
+    padding:3.5rem 1rem 2rem;
 }
 
-button {
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    border: none;
-    border-radius: 5px;
-    background: #00b894;
-    color: white;
-    cursor: pointer;
+header h1{
+    margin:0;
+    font-size:2rem;
+    font-weight:700;
+    letter-spacing: -0.02em;
 }
 
-button:hover {
-    background: #019875;
+header p{margin:0.5rem 0 0;color:var(--muted);}
+
+main{
+    max-width:var(--max-width);
+    margin:1rem auto 4rem;
+    padding:1rem;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
 }
 
-#results-container {
-    margin-top: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 0 1rem;
+.input-section{
+    width:100%;
+    display:flex;
+    gap:0.75rem;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:1rem;
 }
 
-.reuse-card {
-    background: #1f1f1f;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid #333;
+.input-section input{
+    padding:0.75rem 1rem;
+    font-size:1rem;
+    width:60%;
+    border-radius:10px;
+    border:1px solid #e6e9ee;
+    background:transparent;
 }
+
+.input-section button{
+    padding:0.75rem 1.1rem;
+    font-size:1rem;
+    border-radius:10px;
+    border:none;
+    background:var(--accent);
+    color:white;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(14,165,164,0.12);
+}
+
+.input-section button:hover{background:var(--accent-600)}
+
+#results-container{
+    margin-top:1.25rem;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:1rem;
+    align-items:center;
+}
+
+.card{
+    width:100%;
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:1.15rem 1.25rem;
+    box-shadow:0 6px 18px rgba(15,23,36,0.06);
+    border:1px solid rgba(15,23,36,0.04);
+}
+
+.card h2{margin:0 0 0.5rem;font-size:1.25rem;color:var(--text);}
+.card p{margin:0.35rem 0;color:var(--muted);}
+.card ol{margin:0.5rem 0 0 1.1rem;padding:0;color:var(--text)}
+.card li{margin:0.35rem 0}
+
+@media (max-width:640px){
+    .input-section{flex-direction:column}
+    .input-section input{width:100%}
+    .input-section button{width:100%}
+}
+
