@@ -1,13 +1,18 @@
-import fetch from "node-fetch";
+import { streamText } from 'ai';
+import { google } from '@ai-sdk/google';
 
-const API_KEY = process.env.GEMINI_API_KEY; // store your key securely in Vercel
+// Vercel Edge Runtime is recommended for streaming
+export const runtime = 'edge';
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).send("Method not allowed");
+export async function POST(req) {
+  const { item } = await req.json();
 
-  const { item } = req.body;
-
-  if (!item) return res.status(400).json({ error: "No item provided" });
+  if (!item) {
+    return new Response(
+      JSON.stringify({ error: "No item provided" }),
+      { status: 400 }
+    );
+  }
 
   const prompt = `
 You are an AI assistant that gives creative reuse ideas for items.
@@ -19,32 +24,19 @@ Output a JSON object with:
 `;
 
   try {
-    const response = await fetch("https://api.gemini.ai/v1/complete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({ prompt, max_tokens: 200 })
+    const result = await streamText({
+      model: google('gemini-2.5-flash'), // or any Gemini model
+      prompt,
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY // <- use this env variable
     });
 
-    const data = await response.json();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(data.text);
-    } catch {
-      parsed = {
-        reuseScore: 50,
-        ideas: ["Use creatively", "Repurpose somehow", "Donate it"],
-        impact: { CO2: 0.1, water: 1, waste: 0.2 }
-      };
-    }
-
-    res.status(200).json(parsed);
+    return result.toAIStreamResponse();
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Gemini request failed" });
+    console.error("Gemini streaming failed:", err);
+    return new Response(
+      JSON.stringify({ error: "Gemini request failed", details: err.message }),
+      { status: 500 }
+    );
   }
 }
