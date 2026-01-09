@@ -2,6 +2,8 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.6",
     "ai": "^6.0.25",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "express": "^4.22.1",
+    "node-fetch": "^2.6.7"
   }
 }
