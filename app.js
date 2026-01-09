@@ -129,6 +129,15 @@ document.getElementById('submit-item').addEventListener('click', async () => {
 
         renderReuseCard(itemInput || (data.identifiedItem || 'photo'), data);
 
+        // clear captured image and hide preview after successful run
+        capturedImage = null;
+        const p = document.getElementById('image-preview');
+        if (p) p.style.display = 'none';
+        const previewImg = document.getElementById('preview-img');
+        if (previewImg) previewImg.src = '';
+        const fileInput = document.getElementById('image-input');
+        if (fileInput) fileInput.value = '';
+
     } catch (err) {
         console.error(err);
         resultsContainer.innerHTML = "<p>Error getting suggestions. Check console.</p>";
