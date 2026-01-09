@@ -9,19 +9,59 @@ function safeJsonParse(text) {
   }
 }
 
+function detectProfile(item) {
+  const text = (item || '').toLowerCase();
+  const profiles = [
+    { keys: ['plastic bottle', 'bottle'], weight: 0.03, material: 'plastic', reuseBase: 55, co2PerKg: 2.5, waterPerKg: 50, reach: 500000 },
+    { keys: ['glass bottle', 'glass jar'], weight: 0.4, material: 'glass', reuseBase: 70, co2PerKg: 0.9, waterPerKg: 10, reach: 100000 },
+    { keys: ['aluminum can', 'can'], weight: 0.015, material: 'aluminum', reuseBase: 75, co2PerKg: 9.0, waterPerKg: 5, reach: 600000 },
+    { keys: ['cardboard', 'box'], weight: 0.2, material: 'paper', reuseBase: 80, co2PerKg: 1.0, waterPerKg: 20, reach: 200000 },
+    { keys: ['t-shirt', 'shirt', 'clothing', 'fabric'], weight: 0.25, material: 'textile', reuseBase: 80, co2PerKg: 2.0, waterPerKg: 2700, reach: 120000 },
+    { keys: ['phone', 'smartphone', 'electronics', 'laptop', 'tablet'], weight: 0.2, material: 'electronic', reuseBase: 45, co2PerKg: 70, waterPerKg: 1000, reach: 50000 },
+    { keys: ['plastic bag', 'bag'], weight: 0.01, material: 'plastic', reuseBase: 30, co2PerKg: 2.5, waterPerKg: 20, reach: 400000 },
+    { keys: ['cup', 'paper cup', 'coffee cup'], weight: 0.02, material: 'paper', reuseBase: 25, co2PerKg: 1.0, waterPerKg: 20, reach: 300000 }
+  ];
+
+  for (let p of profiles) {
+    for (let k of p.keys) {
+      if (text.indexOf(k) !== -1) return p;
+    }
+  }
+
+  // Generic fallback profile
+  return { keys: [], weight: Math.max(0.03, Math.min(1, (text.length || 5) * 0.02)), material: 'generic', reuseBase: 50, co2PerKg: 2.5, waterPerKg: 50, reach: 100000 };
+}
+
 function makeFallback(item) {
-  const base = (item && item.length) ? Math.min(90, 40 + item.length) : 50;
-  const wasteKg = Math.max(0.01, Math.min(5, (item.length || 5) * 0.05));
+  const profile = detectProfile(item);
+  const perItemKg = Math.max(0.001, Number(profile.weight) || 0.05);
+
+  // Compute reuse score using profile base, small boosts/penalties from keywords
+  let score = profile.reuseBase || 50;
+  const t = (item || '').toLowerCase();
+  if (t.includes('single-use') || t.includes('disposable') || t.includes('throwaway')) score -= 20;
+  if (t.includes('vintage') || t.includes('antique') || t.includes('handmade')) score += 12;
+  // longer descriptive names often imply more durable items
+  if ((item || '').length > 20) score += 6;
+  score = Math.round(Math.max(0, Math.min(100, score)));
+
+  // Impact estimates
+  const waste = +perItemKg.toFixed(3);
+  const co2 = +(waste * (profile.co2PerKg || 2.5)).toFixed(2);
+  const water = Math.round(waste * (profile.waterPerKg || 50));
+
+  const ideas = [
+    `Repurpose ${item} as a planter or small storage`,
+    `Upcycle ${item} into a home craft or donation item`,
+    `Share ${item} locally through community reuse groups`
+  ];
+
   return {
-    reuseScore: Math.max(0, Math.min(100, Math.round(base))),
-    ideas: [
-      `Repurpose ${item} as a small planter or seed starter`,
-      `Turn ${item} into a storage container or desk organizer`,
-      `Donate or upcycle ${item} into craft material for workshops`
-    ],
-    impact: { CO2: +(wasteKg * 0.5).toFixed(2), water: +(wasteKg * 30).toFixed(0), waste: +wasteKg.toFixed(3) },
-    perItem: { wasteKg: +wasteKg.toFixed(3) },
-    slider: { maxRecycled: 10000 }
+    reuseScore: score,
+    ideas,
+    impact: { CO2: co2, water: water, waste: waste },
+    perItem: { wasteKg: waste },
+    slider: { maxRecycled: Math.max(100, Math.floor(profile.reach || 10000)) }
   };
 }
 
