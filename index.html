@@ -12,8 +12,9 @@
     body {
       margin: 0;
       font-family: Inter, system-ui, sans-serif;
-      background: radial-gradient(circle at top, #e8f5e9, #c8e6c9);
-      color: #1b1b1b;
+      background: radial-gradient(circle at top, #e6f0ff, #f7e8ff 60%);
+      color: #0f1724;
+      background-attachment: fixed;
     }
 
     /* ---------- LAYOUT ---------- */
@@ -27,11 +28,12 @@
 
     .app {
       width: 100%;
-      padding: 24px;
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(12px);
+      padding: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,249,255,0.9));
+      backdrop-filter: blur(8px);
       border-radius: 22px;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+      box-shadow: 0 30px 60px rgba(20,18,60,0.12);
+      border: 1px solid rgba(20,18,60,0.04);
     }
 
     /* ---------- BRAND ---------- */
@@ -43,8 +45,9 @@
     }
 
     .logo {
-      font-size: 2.4rem;
-      animation: spin 8s linear infinite;
+      font-size: 2.6rem;
+      animation: spin 10s linear infinite;
+      filter: drop-shadow(0 6px 12px rgba(99,102,241,0.12));
     }
 
     @keyframes spin {
@@ -53,18 +56,19 @@
     }
 
     h1 {
-      font-size: 2.6rem;
+      font-size: 3.2rem;
       margin: 0;
-      background: linear-gradient(90deg, #1b5e20, #66bb6a);
+      background: linear-gradient(90deg, #6d28d9, #06b6d4);
       -webkit-background-clip: text;
       color: transparent;
+      letter-spacing: -0.01em;
     }
 
     .subtitle {
-      font-size: 1rem;
-      color: #355f38;
+      font-size: 1.05rem;
+      color: #334155;
       margin-bottom: 28px;
-      max-width: 520px;
+      max-width: 720px;
     }
 
     /* ---------- INPUT ---------- */
@@ -76,11 +80,13 @@
     }
 
     input {
-      padding: 18px;
+      padding: 16px 18px;
       font-size: 16px;
-      border-radius: 14px;
-      border: 1px solid #bdbdbd;
+      border-radius: 12px;
+      border: 1px solid rgba(15,23,42,0.08);
       outline: none;
+      background: rgba(250,250,255,0.9);
+      box-shadow: inset 0 -1px 0 rgba(16,24,40,0.02);
     }
 
     input:focus {
@@ -88,26 +94,26 @@
     }
 
     button {
-      padding: 18px;
+      padding: 16px 20px;
       font-size: 16px;
-      border-radius: 14px;
+      border-radius: 12px;
       border: none;
-      background: linear-gradient(135deg, #2e7d32, #43a047);
+      background: linear-gradient(135deg, #6d28d9, #06b6d4);
       color: white;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: 0.01em;
       cursor: pointer;
+      box-shadow: 0 10px 30px rgba(99,102,241,0.12);
     }
 
-    button:hover {
-      filter: brightness(1.05);
-    }
+    button:hover { transform: translateY(-2px); }
 
     /* ---------- LOADING ---------- */
     .loading {
       display: none;
       margin-top: 14px;
       font-style: italic;
-      color: #33691e;
+      color: #475569;
     }
 
     /* ---------- RESULT CARD ---------- */
@@ -115,10 +121,11 @@
       display: none;
       margin-top: 26px;
       padding: 24px;
-      border-radius: 20px;
-      background: white;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff, #fbfbff);
+      box-shadow: 0 20px 40px rgba(22,18,45,0.08);
       animation: pop 0.5s ease;
+      border: 1px solid rgba(99,102,241,0.06);
     }
 
     @keyframes pop {
@@ -154,7 +161,7 @@
     }
 
     .score-progress {
-      stroke: #2e7d32;
+      stroke: url(#gradStroke);
       stroke-dasharray: 314;
       stroke-dashoffset: 314;
       transition: stroke-dashoffset 1s ease;
@@ -166,16 +173,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: #1b5e20;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #111827;
     }
 
     /* ---------- IDEAS ---------- */
     ul { padding-left: 18px; }
     li { margin-bottom: 8px; }
 
-    .impact { margin-top: 14px; font-weight: 500; color: #2e7d32 }
+    .impact { margin-top: 14px; font-weight: 600; color:#374151 }
 
     /* ---------- DESKTOP ---------- */
     @media (min-width: 900px) {
@@ -200,14 +207,8 @@
       </p>
 
       <div class="input-area">
-        <input id="item-input" placeholder="e.g. plastic bottle"/>
-        <button id="camera-btn" title="Add photo" aria-label="Add photo">📷</button>
-        <input id="image-input" type="file" accept="image/*" capture="environment" style="display:none">
-        <button id="submit-item">Give it a Second Life</button>
-      </div>
-
-      <div id="image-preview" style="display:none; margin-top:12px; text-align:center">
-        <img id="preview-img" src="" alt="preview" style="max-width:240px; border-radius:8px; box-shadow:0 8px 18px rgba(0,0,0,0.08)">
+        <input id="itemInput" placeholder="e.g. plastic bottle"/>
+        <button onclick="analyzeItem()">Scan & Transform</button>
       </div>
 
       <div id="loading" class="loading">🤖 AI is analyzing sustainability impact...</div>
@@ -215,8 +216,14 @@
       <div id="result" class="result-card">
 
         <div class="score-wrap">
-          <div class="score-ring">
+            <div class="score-ring">
             <svg width="120" height="120">
+              <defs>
+                <linearGradient id="gradStroke" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#6d28d9" />
+                  <stop offset="100%" stop-color="#06b6d4" />
+                </linearGradient>
+              </defs>
               <circle class="score-bg" cx="60" cy="60" r="50"/>
               <circle id="scoreCircle" class="score-progress" cx="60" cy="60" r="50"/>
             </svg>
@@ -237,6 +244,55 @@
     </div>
   </div>
 
-  <script src="app.js" defer></script>
+  <script>
+    async function analyzeItem() {
+      const item = document.getElementById("itemInput").value.trim();
+      if (!item) return;
+
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("result").style.display = "none";
+
+      try {
+        const res = await fetch("/api/reuse", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ item })
+        });
+
+        const data = await res.json();
+
+        // Score ring
+        const percent = Math.max(0, Math.min(100, Number(data.reuseScore) || 0));
+        const offset = 314 - (314 * percent) / 100;
+        document.getElementById("scoreCircle").style.strokeDashoffset = offset;
+        document.getElementById("scoreText").innerText = percent;
+
+        // Ideas
+        const list = document.getElementById("ideas");
+        list.innerHTML = "";
+        (data.ideas || []).forEach(i => {
+          const li = document.createElement("li");
+          li.innerText = i;
+          list.appendChild(li);
+        });
+
+        // Robust impact handling (model may return different field names)
+        const impact = data.impact || {};
+        const waste = impact.waste ?? impact.WASTE ?? impact.Waste ?? impact.wasteKg ?? (data.perItem && data.perItem.wasteKg) ?? 'N/A';
+        const co2 = impact.co2 ?? impact.CO2 ?? 'N/A';
+        const water = impact.water ?? impact.Water ?? 'N/A';
+
+        document.getElementById("impact").innerText =
+          `🌱 Waste saved: ${waste}kg · CO₂: ${co2}kg · Water: ${water}L`;
+
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("result").style.display = "block";
+
+      } catch (err) {
+        document.getElementById("loading").innerText =
+          "Something went wrong. Please try again.";
+      }
+    }
+  </script>
 </body>
 </html>
