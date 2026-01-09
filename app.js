@@ -71,18 +71,44 @@ function renderReuseCard(item, data) {
         updateImpact();
 }
 
+let capturedImage = null;
+
+// camera button triggers file input (mobile will open camera)
+document.getElementById('camera-btn').addEventListener('click', () => {
+    document.getElementById('image-input').click();
+});
+
+// when a file is selected, read as data URL and show preview
+document.getElementById('image-input').addEventListener('change', (ev) => {
+    const f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        capturedImage = reader.result; // data URL
+        const p = document.getElementById('image-preview');
+        const img = document.getElementById('preview-img');
+        img.src = capturedImage;
+        p.style.display = 'block';
+    };
+    reader.readAsDataURL(f);
+});
+
 document.getElementById('submit-item').addEventListener('click', async () => {
     const itemInput = document.getElementById('item-input').value.trim();
-    if (!itemInput) return alert("Please enter an item.");
+    if (!itemInput && !capturedImage) return alert("Please enter an item or add a photo.");
 
     const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = "<p>Thinking... 🤖</p>";
 
     try {
+        const body = {};
+        if (itemInput) body.item = itemInput;
+        if (capturedImage) body.image = capturedImage; // base64 data URL
+
         const response = await fetch("/api/reuse", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ item: itemInput })
+            body: JSON.stringify(body)
         });
 
         const text = await response.text();
@@ -101,7 +127,7 @@ document.getElementById('submit-item').addEventListener('click', async () => {
             return;
         }
 
-        renderReuseCard(itemInput, data);
+        renderReuseCard(itemInput || (data.identifiedItem || 'photo'), data);
 
     } catch (err) {
         console.error(err);

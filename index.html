@@ -303,8 +303,14 @@
 
         <main>
                 <div class="input-section">
-                        <input type="text" id="item-input" placeholder="e.g. plastic bottle">
-                        <button id="submit-item">Give it a Second Life</button>
+                  <input type="text" id="item-input" placeholder="e.g. plastic bottle">
+                  <button id="camera-btn" title="Add photo" aria-label="Add photo">📷</button>
+                  <input id="image-input" type="file" accept="image/*" capture="environment" style="display:none">
+                  <button id="submit-item">Give it a Second Life</button>
+                </div>
+
+                <div id="image-preview" style="display:none; margin-top:0.75rem; text-align:center">
+                  <img id="preview-img" src="" alt="preview" style="max-width:240px; border-radius:8px; box-shadow:0 8px 18px rgba(0,0,0,0.08)">
                 </div>
 
                 <div id="results-container">

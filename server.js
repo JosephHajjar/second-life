@@ -4,7 +4,7 @@ const path = require('path');
 const express = require('express');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '8mb' }));
 
 // Mount the serverless handler at /api/reuse
 const reuseHandler = require('./api/reuse');
