@@ -11,17 +11,6 @@ function safeJsonParse(text) {
 
 function detectProfile(item) {
   const text = (item || '').toLowerCase();
-  const profiles = [
-    { keys: ['plastic bottle', 'bottle'], weight: 0.03, material: 'plastic', reuseBase: 72, co2PerKg: 2.5, waterPerKg: 50, reach: 500000 },
-    { keys: ['glass bottle', 'glass jar'], weight: 0.4, material: 'glass', reuseBase: 70, co2PerKg: 0.9, waterPerKg: 10, reach: 100000 },
-    { keys: ['aluminum can', 'can'], weight: 0.015, material: 'aluminum', reuseBase: 75, co2PerKg: 9.0, waterPerKg: 5, reach: 600000 },
-    { keys: ['cardboard', 'box'], weight: 0.2, material: 'paper', reuseBase: 80, co2PerKg: 1.0, waterPerKg: 20, reach: 200000 },
-    { keys: ['t-shirt', 'shirt', 'clothing', 'fabric'], weight: 0.25, material: 'textile', reuseBase: 80, co2PerKg: 2.0, waterPerKg: 2700, reach: 120000 },
-    { keys: ['phone', 'smartphone', 'electronics', 'laptop', 'tablet'], weight: 0.2, material: 'electronic', reuseBase: 45, co2PerKg: 70, waterPerKg: 1000, reach: 50000 },
-    { keys: ['plastic bag', 'bag'], weight: 0.01, material: 'plastic', reuseBase: 45, co2PerKg: 2.5, waterPerKg: 20, reach: 400000 },
-    { keys: ['cup', 'paper cup', 'coffee cup'], weight: 0.02, material: 'paper', reuseBase: 25, co2PerKg: 1.0, waterPerKg: 20, reach: 300000 }
-  ];
-  
     // More specific material profiles with recyclability, durability and mass heuristics
     const profiles = [
       { keys: ['plastic bottle', 'bottle', 'pet bottle'], material: 'plastic:PET', massKg: 0.02, reuseBase: 72, recyclability: 0.8, durability: 5, co2PerKg: 2.5, waterPerKg: 50, reach: 500000 },
@@ -46,8 +35,9 @@ function detectProfile(item) {
     // Generic fallback profile uses simple heuristics
     const fallbackMass = Math.max(0.01, Math.min(5, (text.length || 10) * 0.02));
     return { keys: [], material: 'generic', massKg: fallbackMass, reuseBase: 55, recyclability: 0.6, durability: 5, co2PerKg: 2.5, waterPerKg: 50, reach: 100000 };
+  }
 
-function makeFallback(item) {
+  function makeFallback(item) {
   const profile = detectProfile(item);
   const perItemKg = Math.max(0.001, Number(profile.weight) || 0.05);
 
