@@ -78,7 +78,7 @@ function detectProfile(item) {
 async function askModelForScore(item, partialJson, apiKey) {
   try {
     const modelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generate?key=' + encodeURIComponent(apiKey);
-    const prompt = `You are an expert sustainability assistant. Compute a single numeric reuseScore (0-100) for the given item, using the provided Context JSON if present. Be particular about the materials array if present — weight each material's suggestedReuseScore by its confidence to form the overall reuseScore.\nItem: ${item}\nContext JSON: ${JSON.stringify(partialJson)}\nRespond with ONLY valid JSON: {"reuseScore": <number>} (integer between 0 and 100). No extra text.`;
+    const prompt = `You are an expert sustainability evaluator. Using your best judgement, produce a single integer reuseScore (0-100) representing how suitable the item is for reuse. Do NOT compute or display formulas, per-material arithmetic, or explicit weighting — use holistic reasoning. Use the Context JSON only as background information if present.\nItem: ${item}\nContext JSON: ${JSON.stringify(partialJson)}\nRespond with ONLY valid JSON: {"reuseScore": <number>} (integer between 0 and 100). No extra text.`;
     const body = { prompt: prompt, temperature: 0.0 };
     const rr = await fetch(modelUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     let dd = null;
@@ -127,10 +127,8 @@ module.exports = async function (req, res) {
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) {
       console.warn('Missing GOOGLE_GENERATIVE_AI_API_KEY; returning fallback response');
-      const prompt = `You are an expert sustainability evaluator. Using your best judgement, produce a single integer reuseScore (0-100) representing how suitable the item is for reuse. Do NOT compute or display formulas, per-material arithmetic, or explicit weighting — use holistic reasoning. Use the Context JSON only as background information if present.
-  Item: ${item}
-  Context JSON: ${JSON.stringify(partialJson)}
-  Respond with ONLY valid JSON: {"reuseScore": <number>} (integer between 0 and 100). No extra text.`;
+      return res.status(200).json(makeFallback(item));
+    }
     // If anything fails or the model returns non-JSON, fall back to a safe canned response.
     try {
       const modelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generate?key=' + encodeURIComponent(apiKey);
