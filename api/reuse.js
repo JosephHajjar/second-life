@@ -127,10 +127,10 @@ module.exports = async function (req, res) {
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) {
       console.warn('Missing GOOGLE_GENERATIVE_AI_API_KEY; returning fallback response');
-      return res.status(200).json(makeFallback(item));
-    }
-
-    // Attempt a simple, single-call request using a common endpoint shape.
+      const prompt = `You are an expert sustainability evaluator. Using your best judgement, produce a single integer reuseScore (0-100) representing how suitable the item is for reuse. Do NOT compute or display formulas, per-material arithmetic, or explicit weighting — use holistic reasoning. Use the Context JSON only as background information if present.
+  Item: ${item}
+  Context JSON: ${JSON.stringify(partialJson)}
+  Respond with ONLY valid JSON: {"reuseScore": <number>} (integer between 0 and 100). No extra text.`;
     // If anything fails or the model returns non-JSON, fall back to a safe canned response.
     try {
       const modelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generate?key=' + encodeURIComponent(apiKey);
