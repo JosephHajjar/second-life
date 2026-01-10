@@ -107,35 +107,6 @@ async function askModelForScore(item, partialJson, apiKey) {
   }
 }
 
-// Helper to ask the model to identify the primary object in a base64 image.
-async function askModelForIdentification(imageDataUrl, apiKey) {
-  try {
-    const modelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generate?key=' + encodeURIComponent(apiKey);
-    const prompt = `You are a vision-capable assistant. The user supplied an image as a base64 data URL (not all runtimes can decode images). If you can identify the primary object depicted in the image, respond with ONLY valid JSON: {"identifiedItem": "short label"}. If you cannot reliably identify it, respond with {"identifiedItem": null}. Do NOT include any other text.`;
-    const body = { prompt: prompt + '\nImageDataURL: ' + String(imageDataUrl).slice(0, 3000), temperature: 0.0 };
-    const rr = await fetch(modelUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    let dd = null;
-    try { dd = await rr.json(); } catch (e) { dd = null; }
-    if (!rr.ok || !dd) return null;
-
-    let text = '';
-    if (dd.candidates && dd.candidates[0] && dd.candidates[0].content) {
-      const parts = dd.candidates[0].content.parts || [];
-      text = parts.map(p => p.text || '').join('');
-    } else if (typeof dd.output === 'string') {
-      text = dd.output;
-    } else {
-      try { text = JSON.stringify(dd); } catch (e) { text = '' + dd; }
-    }
-
-    const parsed = safeJsonParse(text);
-    if (parsed && Object.prototype.hasOwnProperty.call(parsed, 'identifiedItem')) return parsed.identifiedItem || null;
-    return null;
-  } catch (e) {
-    return null;
-  }
-}
-
 module.exports = async function (req, res) {
   try {
     if (req.method !== 'POST') {
@@ -204,28 +175,18 @@ module.exports = async function (req, res) {
           if (out.perItem) out.perItem.wasteKg = Math.max(0, Number(out.perItem.wasteKg) || 0);
           if (out.slider && Number.isFinite(Number(out.slider.maxRecycled))) out.slider.maxRecycled = Math.max(1, Math.floor(Number(out.slider.maxRecycled)));
 
-          // If an image was supplied but model didn't set `identifiedItem`, try asking for identification
-          if (!out.identifiedItem && req && req.body && req.body.image) {
-            try {
-              const id = await askModelForIdentification(req.body.image, apiKey);
-              if (id) out.identifiedItem = id;
-            } catch (e) {
-              // ignore identification errors
-            }
-          }
-
           // Prefer AI-generated score: if missing or invalid, ask the model specifically for a reuseScore
           if (!Number.isFinite(Number(out.reuseScore))) {
             try {
-              const aiScore = await askModelForScore(out.identifiedItem || item, out, apiKey);
+              const aiScore = await askModelForScore(item, out, apiKey);
               if (aiScore !== null) out.reuseScore = aiScore;
               else {
                 // fallback to profile base if AI score not available
-                const profile = detectProfile(out.identifiedItem || item);
+                const profile = detectProfile(item);
                 out.reuseScore = Math.round(Math.max(0, Math.min(100, Number(profile.reuseBase || 50))));
               }
             } catch (e) {
-              const profile = detectProfile(out.identifiedItem || item);
+              const profile = detectProfile(item);
               out.reuseScore = Math.round(Math.max(0, Math.min(100, Number(profile.reuseBase || 50))));
             }
           } else {

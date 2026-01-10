@@ -14,9 +14,8 @@ function renderReuseCard(item, data) {
             sliderMax = Math.max(1, Math.floor(Number(data.slider.maxRecycled)));
         }
 
-        // If a dedicated results container exists, render the interactive card there.
-        if (resultsContainer) {
-            resultsContainer.innerHTML = `
+        // Render card with slider to simulate number of people who recycled this item
+        resultsContainer.innerHTML = `
                 <div class="card">
                         <h2>Reuse ideas for "${item}"</h2>
                         <p class="muted-small"><strong>Reuse score:</strong> ${reuseScore}</p>
@@ -42,68 +41,34 @@ function renderReuseCard(item, data) {
                 </div>
         `;
 
-            // Setup slider behavior
-            const slider = document.getElementById('people-slider');
-            const peopleCountEl = document.getElementById('people-count');
-            const wasteKgEl = document.getElementById('waste-kg');
-            const itemsCountEl = document.getElementById('items-count');
+        // Setup slider behavior
+        const slider = document.getElementById('people-slider');
+        const peopleCountEl = document.getElementById('people-count');
+        const wasteKgEl = document.getElementById('waste-kg');
+        const itemsCountEl = document.getElementById('items-count');
 
-            function updateImpact() {
-                let people = Number(slider.value || 0);
-                // Clamp to valid range
-                people = Math.max(0, Math.min(people, Number(slider.max) || sliderMax));
-                peopleCountEl.textContent = Intl.NumberFormat().format(people);
-                const items = people; // assume one item per person for simulation
-                itemsCountEl.textContent = Intl.NumberFormat().format(items);
+        function updateImpact() {
+            let people = Number(slider.value || 0);
+            // Clamp to valid range
+            people = Math.max(0, Math.min(people, Number(slider.max) || sliderMax));
+            peopleCountEl.textContent = Intl.NumberFormat().format(people);
+            const items = people; // assume one item per person for simulation
+            itemsCountEl.textContent = Intl.NumberFormat().format(items);
 
-                // Compute waste prevented = per-item waste * items
-                let wasteKg = perItemWasteKg * items;
-                wasteKg = Math.max(0, wasteKg);
-                // Show in kg, but scale to tonnes if large
-                if (wasteKg >= 1000) {
-                    wasteKgEl.textContent = (wasteKg / 1000).toFixed(2) + ' t';
-                } else {
-                    wasteKgEl.textContent = wasteKg.toFixed(2);
-                }
+            // Compute waste prevented = per-item waste * items
+            let wasteKg = perItemWasteKg * items;
+            wasteKg = Math.max(0, wasteKg);
+            // Show in kg, but scale to tonnes if large
+            if (wasteKg >= 1000) {
+                wasteKgEl.textContent = (wasteKg / 1000).toFixed(2) + ' t';
+            } else {
+                wasteKgEl.textContent = wasteKg.toFixed(2);
             }
-
-            slider.addEventListener('input', updateImpact);
-            // initialize
-            updateImpact();
-        } else {
-            // Otherwise update the existing score card elements in the page
-            const percent = Math.max(0, Math.min(100, Number(reuseScore) || 0));
-            const offset = 314 - (314 * percent) / 100;
-            const scoreCircle = document.getElementById('scoreCircle');
-            const scoreText = document.getElementById('scoreText');
-            if (scoreCircle) scoreCircle.style.strokeDashoffset = offset;
-            if (scoreText) scoreText.innerText = percent;
-
-            // populate ideas list if present
-            const list = document.getElementById('ideas');
-            if (list) {
-                list.innerHTML = '';
-                ideas.forEach(i => {
-                    const li = document.createElement('li');
-                    li.innerText = i;
-                    list.appendChild(li);
-                });
-            }
-
-            // update impact area
-            const impact = data.impact || {};
-            const wasteVal = impact.waste ?? impact.WASTE ?? impact.Waste ?? impact.wasteKg ?? (data.perItem && data.perItem.wasteKg) ?? 'N/A';
-            const co2 = impact.co2 ?? impact.CO2 ?? 'N/A';
-            const water = impact.water ?? impact.Water ?? 'N/A';
-            const impactEl = document.getElementById('impact');
-            if (impactEl) impactEl.innerText = `🌱 Waste saved: ${wasteVal}kg · CO₂: ${co2}kg · Water: ${water}L`;
-
-            // show the result card
-            const resultCard = document.getElementById('result');
-            if (resultCard) resultCard.style.display = 'block';
-            const loading = document.getElementById('loading');
-            if (loading) loading.style.display = 'none';
         }
+
+        slider.addEventListener('input', updateImpact);
+        // initialize
+        updateImpact();
 }
 
 let capturedImage = null;
@@ -163,15 +128,6 @@ document.getElementById('submit-item').addEventListener('click', async () => {
         }
 
         renderReuseCard(itemInput || (data.identifiedItem || 'photo'), data);
-
-        // clear captured image and hide preview after successful run
-        capturedImage = null;
-        const p = document.getElementById('image-preview');
-        if (p) p.style.display = 'none';
-        const previewImg = document.getElementById('preview-img');
-        if (previewImg) previewImg.src = '';
-        const fileInput = document.getElementById('image-input');
-        if (fileInput) fileInput.value = '';
 
     } catch (err) {
         console.error(err);
