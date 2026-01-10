@@ -119,6 +119,14 @@ module.exports = async function (req, res) {
     } catch (e) {
       return res.status(400).json({ error: 'Invalid JSON', message: String(e) });
     }
+    // Reject overly large image payloads early to avoid server errors
+    try {
+      if (req.body && req.body.image && String(req.body.image).length > 6 * 1024 * 1024) {
+        return res.status(413).json({ error: 'Image payload too large' });
+      }
+    } catch (e) {
+      // ignore length check errors
+    }
     if (!item || typeof item !== 'string') {
       return res.status(400).json({ error: 'No item provided' });
     }
