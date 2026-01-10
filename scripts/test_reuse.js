@@ -15,7 +15,7 @@ if (typeof globalThis.fetch !== 'function') {
 }
 
 const path = require('path');
-const reuse = require(path.join('..', 'api', 'reuse'));
+const reuse = require(path.join('..', 'api', 'reuse_local'));
 
 const req = {
   method: 'POST',

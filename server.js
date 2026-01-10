@@ -7,7 +7,8 @@ const app = express();
 app.use(express.json({ limit: '16mb' }));
 
 // Mount the serverless handler at /api/reuse with protective try/catch
-const reuseHandler = require('./api/reuse');
+// Use the fixed AI-first handler (requires GOOGLE_GENERATIVE_AI_API_KEY)
+const reuseHandler = require('./api/reuse_fixed');
 app.post('/api/reuse', async (req, res) => {
   try {
     await reuseHandler(req, res);
@@ -30,7 +31,7 @@ app.get('/api/reuse', (req, res) => {
 // Serve static site (index.html at project root)
 app.use(express.static(path.join(__dirname)));
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3004;
 app.listen(port, () => {
   console.log(`Dev server running at http://localhost:${port}`);
 });
