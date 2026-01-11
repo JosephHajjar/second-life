@@ -121,6 +121,8 @@ main{
 .card p{margin:0.35rem 0;color:var(--muted);font-size:1.02rem}
 .card ol{margin:0.5rem 0 0 1.1rem;padding:0;color:var(--text)}
 .card li{margin:0.35rem 0}
+.ideas-list{margin-top:0.25rem;display:flex;flex-direction:column;gap:0.25rem}
+.idea-row{font-size:1.02rem;color:var(--text)}
 
 .impact-row{display:flex;gap:1rem;align-items:center;margin-top:0.6rem}
 .impact-value{font-weight:600;color:var(--text);font-size:1rem}

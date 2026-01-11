@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "@ai-sdk/google": "^3.0.6",
     "ai": "^6.0.25",

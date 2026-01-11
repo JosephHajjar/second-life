@@ -1,7 +1,7 @@
 function renderReuseCard(item, data) {
     const resultsContainer = document.getElementById('results-container');
     const reuseScore = typeof data?.reuseScore === 'number' ? data.reuseScore : 'N/A';
-    const ideas = Array.isArray(data?.ideas) ? data.ideas : [];
+    const ideas = Array.isArray(data?.ideas) ? data.ideas.slice(0, 3) : [];
         // Compute per-item baseline using model fields if present; ensure non-negative
         let perItemWasteKg = 0.3;
         if (typeof data?.perItem?.wasteKg === 'number') perItemWasteKg = data.perItem.wasteKg;
@@ -19,9 +19,9 @@ function renderReuseCard(item, data) {
                 <div class="card">
                         <h2>Reuse ideas for "${item}"</h2>
                         <p class="muted-small"><strong>Reuse score:</strong> ${reuseScore}</p>
-                        <ol>
-                                ${ideas.map(i => `<li>${i}</li>`).join('')}
-                        </ol>
+                        <div class="ideas-list">
+                            ${ideas.map((i, idx) => `<div class="idea-row">${idx + 1}. ${i}</div>`).join('')}
+                        </div>
 
                         <div class="slider-row">
                             <label class="muted-small">People who recycled this item: <span id="people-count">0</span></label>
